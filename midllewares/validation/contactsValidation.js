@@ -1,6 +1,5 @@
 /*используем для валидации  joi */
 
-import res from 'express/lib/response';
 import Joi from 'joi';
 
 const createSchema = Joi.object({
