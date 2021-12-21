@@ -1,6 +1,6 @@
 import {Router} from 'express';
 const router = new Router();
-import { validateCreate, validateUpdate, validateId } from '../../midllewares/validation/contactsValidation';
+import { validateCreate, validateUpdate, validateId } from '../midllewares/validation/contactsValidation';
 import getContactsController from '../controllers/contacts/get-contacts';
 import getContactController from '../controllers/contacts/get-contact';
 import deleteContactController from '../controllers/contacts/delete-contact';

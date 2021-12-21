@@ -2,7 +2,7 @@ import express from 'express';
 import logger from 'morgan';
 import cors from 'cors';
 
-import contactsRouter from './routes/api/contacts.js';
+import contactsRouter from './routes/contactsRouters';
 
 const app = express();
 
@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: false})); 
 
-app.use('/api/contacts', contactsRouter);
+app.use('/api/contacts', contactsRouter); //не понял, почему именно  так: '/api/contacts' ????!!! (так было в template!!!!)
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not found' })

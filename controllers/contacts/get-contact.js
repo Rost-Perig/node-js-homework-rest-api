@@ -1,4 +1,4 @@
-import contactsModel from '../../../models/contacts/index';
+import contactsModel from '../../models/contacts/index';
 
 export default async (req, res, next) => {
   const { id } = req.params;
