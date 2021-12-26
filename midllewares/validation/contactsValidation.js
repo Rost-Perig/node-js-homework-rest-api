@@ -1,70 +1,96 @@
 /*используем для валидации  joi */
 
 import Joi from 'joi';
+import mongoose from 'mongoose';
+import { httpCodes } from '../../lib/constants';
+  
+const { Types } = mongoose;
 
 const createSchema = Joi.object({
-    name: Joi.string() 
-        .required() 
-        .min(3)
-        .max(30), 
-    email: Joi.string()
-        .email()
-        .required(),
-    phone: Joi.string()
-        .required()
+    name: Joi.string().required().min(3).max(30), 
+    email: Joi.string().email().required(),
+    phone: Joi.string().required(),
+    favorite: Joi.boolean().optional()
 });
 
 const updateSchema = Joi.object({
-    name: Joi.string() 
-        .optional() 
-        .min(3)
-        .max(30), 
-    email: Joi.string()
-        .email()
-        .optional(),
-    phone: Joi.string()
-        .optional()
-}).or('name', 'email', 'phone'); 
+    name: Joi.string().optional().min(3).max(30), 
+    email: Joi.string().email().optional(),
+    phone: Joi.string().optional(),
+    favorite: Joi.boolean().optional()
+}).or('name', 'email', 'phone', 'favorite'); 
 
-const idSchema = Joi.object({
-    id: Joi.string()
-        .required()
-});
+const updateFavoriteSchema = Joi.object({
+    favorite: Joi.boolean().required()
+}); 
+
+const regLimit = /\d+/; 
+
+const querySchema = Joi.object({
+    limit: Joi.string().pattern(regLimit).optional(),
+    skip: Joi.string().pattern(regLimit).optional(),
+    sortBy: Joi.string().optional().valid('name', 'phone', 'email'),
+    sortByDesc: Joi.string().optional().valid('name', 'phone', 'email'),
+    filter: Joi.string().optional().pattern(new RegExp(`(name|email|phone)\\|?(name|email|phone)+`))
+}); 
+
 
 export const validateCreate = async (req, res, next) => {
     try {
-        const value = await createSchema.validateAsync(req.body);
+        await createSchema.validateAsync(req.body);
     }
     catch (err) {
-        return res.status(400).json({ message: `Field ${err.message.replace(/"/g, '')}` });
+        return res.status(httpCodes.BAD_REQUEST).json({ status: 'error', code: httpCodes.BAD_REQUEST, message: `Field ${err.message.replace(/"/g, '')}`});
     };
     next();
 };
 
 export const validateUpdate = async (req, res, next) => {
     try {
-        const value = await updateSchema.validateAsync(req.body);
+        await updateSchema.validateAsync(req.body);
     }
     catch (err) {
-        // console.log(err.details) //Пример ковыряния в ошибках... Выведет в консоли: {message: '"nick" is not allowed', path: [ 'nick' ],type: 'object.unknown',context: { child: 'nick', label: 'nick', value: 'ro', key: 'nick' }}. Теперь определяем тип ошибки (в документации joi они все расписаны) и пишем дальнейшую логику (можно так под каждую... Можно свичем):
         const [{ type }] = err.details;
-        if (type === 'object.unknown') {
-            return res.status(400).json({ message: err.message.replace(/"/g, '') });
+        if (type === 'object.missing') {
+            return res.status(httpCodes.BAD_REQUEST).json({ status: 'error', code: httpCodes.BAD_REQUEST, message: 'missing fields' });
         };
-        return res.status(400).json({ message: 'missing field' });
+        return res.status(httpCodes.BAD_REQUEST).json({ status: 'error', code: httpCodes.BAD_REQUEST, message: err.message.replace(/"/g, '')});
     };
     next(); 
 };
 
-export const validateId = async (req, res, next) => {
+export const validateUpdateFavorite = async (req, res, next) => {
     try {
-        const value = await idSchema.validateAsync(req.params);
+        await updateFavoriteSchema.validateAsync(req.body);
     }
     catch (err) {
-        return res.status(400).json({ message: `${err.message.replace(/"/g, '')}` });
+        const [{ type }] = err.details;
+        if (type === 'object.missing') {
+            return res.status(httpCodes.BAD_REQUEST).json({ status: 'error', code: httpCodes.BAD_REQUEST, message: 'missing field favorite' });
+        };
+        return res.status(httpCodes.BAD_REQUEST).json({ status: 'error', code: httpCodes.BAD_REQUEST, message: err.message.replace(/"/g, '')});
+    };
+    next(); 
+ };
+
+export const validateId = async (req, res, next) => {
+    if (!Types.ObjectId.isValid(req.params.id)) {
+        return res.status(httpCodes.BAD_REQUEST).json({ message: 'Invalid ObjectId' });
     };
     next();
 };
+
+export const validateQuery = async (req, res, next) => {
+    try {
+        await querySchema.validateAsync(req.query);
+    }
+    catch (err) {
+        return res.status(httpCodes.BAD_REQUEST).json({ status: 'error', code: httpCodes.BAD_REQUEST, message: `Field ${err.message.replace(/"/g, '')}`});
+    };
+    next();
+};
+
+
 
 
 
