@@ -1,5 +1,3 @@
-/*вариант для mongoose */
-
 import mongoose from 'mongoose';
   
 const { connect, connection } = mongoose;
@@ -16,7 +14,7 @@ connection.on('connected', () => {
 }); 
 
 connection.on('err', () => {
-    console.log(`Mongoose connection error: ${err.message}`)
+    console.log(`Mongoose connection error`)
 });
 
 connection.on('disconnected', () => {
