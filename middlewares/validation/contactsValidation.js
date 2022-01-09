@@ -30,7 +30,8 @@ const querySchema = Joi.object({
     page: Joi.string().pattern(regLimit).optional(),
     sortBy: Joi.string().optional().valid('name', 'phone', 'email'),
     sortByDesc: Joi.string().optional().valid('name', 'phone', 'email'),
-    filter: Joi.string().optional().pattern(new RegExp(`(name|email|phone)\\|?(name|email|phone)+`)),
+    // filter: Joi.string().optional().pattern(new RegExp(`(name|email|phone)\\|?(name|email|phone)+`)), //gives an error (line below does not give an error)
+    filter: Joi.string().optional().pattern(/name|email|phone/),  
     favorite: Joi.boolean().optional()
 }); 
 
