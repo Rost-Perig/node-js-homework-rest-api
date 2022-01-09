@@ -1,7 +1,10 @@
 import Contact from '../../models/contact';
 
-const removeContact = async (contactId) => {
-    const result = await Contact.findByIdAndRemove(contactId);  
+const removeContact = async (userId, contactId, isAdmin) => {
+    let result = null;  
+    isAdmin ?
+        result = await Contact.findByIdAndRemove(contactId) :
+        result = await Contact.findOneAndRemove({ _id: contactId, owner: userId });
     return result;
 };
 
