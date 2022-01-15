@@ -1,12 +1,11 @@
 import User from '../../models/user';
-// import createUser from '../../repository/users/create-user';
 
 class UserService {
 
     async create(body) {
         const user = new User(body); 
-        const { id, name, email, role, subscription } = await user.save();
-        return { id, name, email, role, subscription };
+        const { id, name, email, role, subscription, avatar } = await user.save();
+        return { id, name, email, role, subscription, avatar };
     };
     
     async findByEmail(email) {
@@ -38,7 +37,7 @@ class UserService {
         let result = null;  
         isAdmin && (result = await User.findByIdAndRemove(userId));
         return result;
-};
+    };
 
     async update(userId, body) {
         const result = await User.findByIdAndUpdate(
@@ -47,7 +46,11 @@ class UserService {
             { new: true }
         );
         return result;
-    }
+    };
+
+    async updateAvatar(id, avatar, avatarCloudId = null) {
+        return await User.updateOne({ _id: id }, { avatar, avatarCloudId });
+    };
 };
  
 const userService = new UserService;

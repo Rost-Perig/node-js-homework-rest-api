@@ -1,18 +1,19 @@
 import jwt from 'jsonwebtoken';
-// import updateToken from '../../repository/users/update-token';
 import User from "../../models/user";
-import findUserByEmail from '../../repository/users/find-user-by-email';
+import userService from '../users/user-service';
+
+const { findByEmail } = userService;
 
 const SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 class AuthService {
     async isUserExist(email) {
-        const user = await findUserByEmail(email);
+        const user = await findByEmail(email);
         return !!user;
     };
 
     async getUser(email, password) {
-        const user = await findUserByEmail(email);
+        const user = await findByEmail(email);
         const isValidPass = await user?.isValidPassword(password);
         if (!isValidPass) {
             return null;
@@ -27,9 +28,9 @@ class AuthService {
         return token;
     };
 
-    async setToken(id, token) {
-        await this.updateToken(id, token);
-    };
+    // async setToken(id, token) {
+    //     await this.updateToken(id, token);
+    // };
 
     async updateToken(id, token) {
         return await User.updateOne({_id:id}, {token});
