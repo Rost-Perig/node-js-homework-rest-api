@@ -1,14 +1,8 @@
-// import listUsers from '../../repository/users/list-users';
-// import getUserById from '../../repository/users/get-user';
-// import removeUser from '../../repository/users/remove-user';
-// import updateUserById from '../../repository/users/update-user';
-
 import userService from '../../services/users/user-service';
 import {httpCodes, Messages, Role} from '../../lib/constants';
 
 class UserControllers {
     async getUsers(req, res, next) {
-        // const users = await listUsers(req.query); //variant
         const users = await userService.list(req.query); 
         res.status(httpCodes.OK).json({ status: 'success', code: httpCodes.OK, data: { ...users } });
     };
@@ -18,22 +12,21 @@ class UserControllers {
         const { id: currentUserId } = req.user;
         (id === 'current') && (id = currentUserId);
         const isAdmin = (req.user.role === Role.ADMIN);
-        // const soughtUser = await getUserById(id, currentUserId, isAdmin); //variant
         const soughtUser = await userService.getById(id, currentUserId, isAdmin);
+        if (!soughtUser) {
+            return  res.status(httpCodes.NOT_FOUND).json({ status: 'error', code: httpCodes.NOT_FOUND, message: Messages.NOT_FOUND[req.app.get('lang')]});
+        };
         const { name, email, role, subscription } = soughtUser;
         let result = null;
         isAdmin ?
             result = soughtUser :
             result = {name, email, role, subscription};
-        soughtUser ?
-            res.status(httpCodes.OK).json({ status: 'success', code: httpCodes.OK, data: {result}} ) : 
-            res.status(httpCodes.NOT_FOUND).json({ status: 'error', code: httpCodes.NOT_FOUND, message: Messages.NOT_FOUND[req.app.get('lang')]});
+        res.status(httpCodes.OK).json({ status: 'success', code: httpCodes.OK, data: { result } });    
     };
 
     async delUser(req, res, next) {
         const { id } = req.params;
         const isAdmin = (req.user.role === Role.ADMIN); 
-        // const deletedUser = await removeUser(id, isAdmin); //variant
         const deletedUser = await userService.remove(id, isAdmin);
         deletedUser ?
             res.status(httpCodes.OK).json({status: 'success', code: httpCodes.OK, data: {deletedUser}}) :
@@ -42,7 +35,6 @@ class UserControllers {
     
     async putUser(req, res, next) {
         const { id } = req.params;  
-        // const updatedUser = await updateUserById(id, req.body); //variant
         const updatedUser = await userService.update(id, req.body);
         updatedUser ?
             res.status(httpCodes.OK).json( {status: 'success', code: httpCodes.OK, message: req.body} ) :
