@@ -1,5 +1,6 @@
 import userService from '../../services/users/user-service';
-import {httpCodes, Messages, Role} from '../../lib/constants';
+import { httpCodes, Messages, Role } from '../../lib/constants';
+import EmailService from '../../services/email/email-service';
 
 class UserControllers {
     async getUsers(req, res, next) {
@@ -39,6 +40,36 @@ class UserControllers {
         updatedUser ?
             res.status(httpCodes.OK).json( {status: 'success', code: httpCodes.OK, message: req.body} ) :
             res.status(httpCodes.NOT_FOUND).json({ status: 'error', code: httpCodes.NOT_FOUND, message: Messages.NOT_FOUND[req.app.get('lang')]});
+    };
+
+    async verifyUser(req, res, next) {
+        const verifyToken = req.params.token;
+        const userFromToken = await userService.findByVerifyToken(verifyToken);
+        if (userFromToken) {
+            await userService.updateVerify(userFromToken.id, true);
+            return res.status(httpCodes.OK).json({status: 'success', code: httpCodes.OK, data: { message: 'Success' }});
+        }
+        res.status(httpCodes.BAD_REQUEST).json({ status: 'success', code: httpCodes.BAD_REQUEST, data: { message: 'Invalid token' } });
+    };
+
+    /*resending email*/
+
+    async repeatEmailForVerifyUser(req, res, next) {
+        const { email } = req.body;
+        const user = await userService.findByEmail(email);
+        if (user) {
+            const { email, name, verifyTokenEmail, isVerify } = user;
+            if (isVerify) {
+                return res.status(httpCodes.OK).json({ status: 'success', code: httpCodes.OK, data: { message: 'User verification was successful earlier' } }); //пользователь успешно подтвержден ранее
+            };
+            const emailService = new EmailService(process.env.NODE_ENV);
+            const isSend = await emailService.sendVerifyEmail(email, name, verifyTokenEmail);
+            if (isSend) {
+            return res.status(httpCodes.OK).json({status: 'success', code: httpCodes.OK, data: { message: 'Success' }})
+            };
+            return res.status(httpCodes.UE).json({  status: 'error', code: httpCodes.UE, data: { message: 'Unprocessable Entity' } })
+        };
+        res.status(httpCodes.NOT_FOUND).json({ status: 'error', code: httpCodes.NOT_FOUND, data: { message: 'User with email not found' } });
     };
 };
 

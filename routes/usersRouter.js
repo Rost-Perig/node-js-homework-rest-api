@@ -7,7 +7,7 @@ import uploadControllers from '../controllers/upload/upload-controllers';
 import { Router } from 'express';
 import { Role } from '../lib/constants';
 
-const { getUsers, getUser, putUser, delUser, } = userControllers;
+const { getUsers, getUser, putUser, delUser, verifyUser, repeatEmailForVerifyUser } = userControllers;
 const { uploadAvatar } = uploadControllers;
 
 const router = new Router();
@@ -21,5 +21,9 @@ router.put('/:id/update', [guard, roleAccess(Role.ADMIN), validateId, validateUp
 router.delete('/:id', [guard, roleAccess(Role.ADMIN), validateId], delUser);
 
 router.patch('/avatar', [guard, upload.single('avatar')], uploadAvatar);
+
+router.get('/verify/:token', verifyUser);
+
+router.post('/verify', repeatEmailForVerifyUser);
 
 export default router;
